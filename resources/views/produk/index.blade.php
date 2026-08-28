@@ -6,83 +6,147 @@
 
 @include('layouts.navbar')
 
-<h1>Halaman Produk</h1>
+<div class="container py-4 px-0">
 
-@can('create', App\Models\Produk::class)
-    <a href="{{ route('produk.create') }}" method="GET" class="btn btn-primary mb-3">Create</a>
-@endcan
+    {{-- Alert Messages --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
-<form action="{{ route('produk.index') }}" method="GET" class="mb-3">
-    <div class="input-group">
-        <input
-            type="text"
-            name="search"
-            value="{{ request('search') }}"
-            class="form-control"
-            placeholder="Search nama produk"
-        >
-        <button class="btn btn-outline-secondary" type="submit">
-            Search
-        </button>
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    {{-- Header Page --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark m-0">Daftar Produk</h2>
+            <p class="text-muted small m-0">Kelola item, stok, dan harga jual produk POS Anda.</p>
+        </div>
+        @can('create', App\Models\Produk::class)
+            <a href="{{ route('produk.create') }}" class="btn btn-primary px-3 font-medium">
+                + Tambah Produk
+            </a>
+        @endcan
     </div>
-</form>
 
-<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">User</th>
-      <th scope="col">Foto</th>
-      <th scope="col">Nama</th>
-      <th scope="col">Harga Beli</th>
-      <th scope="col">Harga Jual</th>
-      <th scope="col">Stok</th>
-      <th scope="col">Aksi</th>
-    </tr>
-  </thead>
-  <tbody>
-    @forelse ($products as $product)
-    <tr>
-      <th scope="row">{{ $products->firstItem() + $loop->index }}</th>
-      <td>{{ $product->user?->name ?? '-' }}</td>
-      <td>
-        @if ($product->foto && \Storage::disk('public')->exists($product->foto))
-          <img src="{{ asset('storage/' . $product->foto) }}"
-               width="100"
-               class="img-thumbnail"
-               alt="{{ $product->nama }}">
-        @else
-          <img src="https://placehold.co/100x100?text=No+Image"
-               width="100"
-               class="img-thumbnail"
-               alt="No Image">
-        @endif
-      </td>
-      <td>{{ $product->nama }}</td>
-      <td>{{ number_format($product->harga_beli, 0, ',', '.') }}</td>
-      <td>{{ number_format($product->harga_jual, 0, ',', '.') }}</td>
-      <td>{{ $product->stok }}</td>
-      <td class="d-flex gap-1">
-        @can('update', $product)
-          <a href="{{ route('produk.edit', $product) }}" class="btn btn-warning">Edit</a>
-        @endcan
-        @can('delete', $product)
-          <form action="{{ route('produk.destroy', $product) }}" method="POST" class="d-inline">
-            @csrf
-            @method('DELETE')
-            <button class="btn btn-danger" onclick="return confirm('Apakah anda yakin akan menghapus produk ini?')">
-                Hapus
-            </button>
-          </form>
-        @endcan
-      </td>
-    </tr>
-    @empty
-       <tr>
-           <td colspan="8"><h1>Data tidak tersedia.</h1></td>
-       </tr>
-    @endforelse
-  </tbody>
-</table>
-{{ $products->links() }}
+    {{-- Main Content Card --}}
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+            
+            {{-- Form Pencarian --}}
+            <form action="{{ route('produk.index') }}" method="GET" class="mb-4">
+                <div class="row g-2 justify-content-end">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <input
+                                type="text"
+                                name="search"
+                                value="{{ request('search') }}"
+                                class="form-control"
+                                placeholder="Cari nama produk..."
+                            >
+                            <button class="btn btn-outline-primary" type="submit">
+                                Cari
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            {{-- Tabel Produk --}}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="py-3" style="width: 50px;">#</th>
+                            <th scope="col" class="py-3" style="width: 80px;">Foto</th>
+                            <th scope="col" class="py-3">Nama Produk</th>
+                            <th scope="col" class="py-3">Dibuat Oleh</th>
+                            <th scope="col" class="py-3">Harga Beli</th>
+                            <th scope="col" class="py-3">Harga Jual</th>
+                            <th scope="col" class="py-3 text-center">Stok</th>
+                            <th scope="col" class="py-3 text-end" style="width: 140px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($products as $product)
+                        <tr>
+                            <td>{{ $products->firstItem() + $loop->index }}</td>
+                            <td>
+                                @if ($product->foto && \Storage::disk('public')->exists($product->foto))
+                                    <img src="{{ asset('storage/' . $product->foto) }}"
+                                         width="50"
+                                         height="50"
+                                         class="rounded object-fit-cover border"
+                                         alt="{{ $product->nama }}">
+                                @else
+                                    <img src="https://placehold.co/50x50?text=No+Img"
+                                         width="50"
+                                         height="50"
+                                         class="rounded object-fit-cover border"
+                                         alt="No Image">
+                                @endif
+                            </td>
+                            <td class="fw-semibold text-dark">{{ $product->nama }}</td>
+                            <td class="text-secondary small">{{ $product->user?->name ?? '-' }}</td>
+                            <td class="text-muted">Rp {{ number_format($product->harga_beli, 0, ',', '.') }}</td>
+                            <td class="fw-semibold text-success">Rp {{ number_format($product->harga_jual, 0, ',', '.') }}</td>
+                            <td class="text-center">
+                                @if($product->stok <= 5)
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">{{ $product->stok }}</span>
+                                @elseif($product->stok <= 20)
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">{{ $product->stok }}</span>
+                                @else
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">{{ $product->stok }}</span>
+                                @endif
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    @can('update', $product)
+                                        <a href="{{ route('produk.edit', $product) }}" class="btn btn-sm btn-warning text-white" title="Edit">
+                                            Edit
+                                        </a>
+                                    @endcan
+                                    @can('delete', $product)
+                                        <form action="{{ route('produk.destroy', $product) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-danger" onclick="return confirm('Apakah anda yakin akan menghapus produk ini?')" title="Hapus">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                Tidak ada data produk ditemukan.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Pagination --}}
+            @if(method_exists($products, 'links'))
+                <div class="mt-4">
+                    {{ $products->links() }}
+                </div>
+            @endif
+
+        </div>
+    </div>
+
+</div>
+
 @endsection

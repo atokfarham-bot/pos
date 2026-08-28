@@ -14,9 +14,10 @@ class Produk extends Model
     
     protected $fillable = [
         'user_id',
+        'jenis_id', // <-- Tambahkan baris ini!
         'foto',
         'nama',
-        'harga_beli',
+        'harga_Beli',
         'harga_jual',
         'stok'
     ];

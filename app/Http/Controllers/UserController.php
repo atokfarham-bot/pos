@@ -46,7 +46,7 @@ class UserController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.users.index')
+            ->route('admin.users')
             ->with('success', 'User berhasil dibuat');
     }
 
