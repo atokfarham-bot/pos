@@ -27,6 +27,11 @@ class Produk extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function jenis()
+    {
+        return $this->belongsTo(Jenis::class, 'jenis_id');
+    }
+
     // Ubah nama method jadi camelCase (i kecil) agar sesuai dengan controller
     public function itemPenjualan()
     {

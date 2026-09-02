@@ -8,13 +8,6 @@
 
 <div class="container py-4 px-0">
 
-    {{-- Alert Messages --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
@@ -68,6 +61,7 @@
                             <th scope="col" class="py-3" style="width: 50px;">#</th>
                             <th scope="col" class="py-3" style="width: 80px;">Foto</th>
                             <th scope="col" class="py-3">Nama Produk</th>
+                            <th scope="col" class="py-3">Jenis Produk</th> {{-- 💡 1. Tambah Header Kolom Jenis --}}
                             <th scope="col" class="py-3">Dibuat Oleh</th>
                             <th scope="col" class="py-3">Harga Beli</th>
                             <th scope="col" class="py-3">Harga Jual</th>
@@ -95,6 +89,14 @@
                                 @endif
                             </td>
                             <td class="fw-semibold text-dark">{{ $product->nama }}</td>
+                            
+                            {{-- 💡 2. Tambah Data Kolom Jenis --}}
+                            <td>
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 small">
+                                    {{ $product->jenis?->nama_jenis ?? 'Tanpa Jenis' }}
+                                </span>
+                            </td>
+
                             <td class="text-secondary small">{{ $product->user?->name ?? '-' }}</td>
                             <td class="text-muted">Rp {{ number_format($product->harga_beli, 0, ',', '.') }}</td>
                             <td class="fw-semibold text-success">Rp {{ number_format($product->harga_jual, 0, ',', '.') }}</td>
@@ -128,7 +130,8 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
+                            {{-- 💡 3. colspan diubah dari 8 menjadi 9 karena jumlah kolom bertambah --}}
+                            <td colspan="9" class="text-center py-5 text-muted">
                                 Tidak ada data produk ditemukan.
                             </td>
                         </tr>
