@@ -9,17 +9,24 @@ use App\Http\Controllers\JenisController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\UserController;
 
-// Route yang bisa diakses ketika user belum login 
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+// Route yang bisa diakses ketika user belum login (Guest)
 Route::middleware('guest')->group(function () { 
     Route::get('/login', [AuthController::class, 'index'])->name('login');
     Route::post('/auth', [AuthController::class, 'auth'])->name('auth');
 });
 
-// Route yang bisa diakses ketika user sudah login 
+// Route yang bisa diakses ketika user sudah login (Authenticated)
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // Route khusus Admin
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users');
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -29,9 +36,12 @@ Route::middleware('auth')->group(function () {
         Route::delete('/users/destroy/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
 
+    // Route untuk Admin dan Kasir
     Route::middleware('role:admin,kasir')->group(function () {
         Route::resource('/produk', ProdukController::class);
+        
         Route::resource('/penjualan', PenjualanController::class);
+        
         Route::resource('/item-penjualan', ItemPenjualanController::class);
         Route::resource('jenis', JenisController::class)->parameters([
             'jenis' => 'jenis'

@@ -8,7 +8,6 @@
 
 <div class="container py-4 px-0">
 
-
     @if(session('errors'))
         <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
             {{ session('errors') }}
@@ -69,33 +68,35 @@
                         @forelse($sales as $sale)
                         <tr>
                             <td>{{ $sales->firstItem() + $loop->index }}</td>
-                            <td class="text-secondary small">{{ $sale->created_at->translatedFormat('d-m-Y H:i:s') }}</td>
-                            <td class="fw-semibold text-dark">{{ $sale->user->name }}</td>
-                            <td class="fw-bold text-primary">Rp {{ number_format($sale->total_pembayaran, 0, ',', '.') }}</td>
+                            <td class="text-secondary small">{{ $sale->created_at ? $sale->created_at->translatedFormat('d-m-Y H:i:s') : '-' }}</td>
+                            <td class="fw-semibold text-dark">{{ $sale->user->name ?? 'Kasir Tidak Ada' }}</td>
+                            <td class="fw-bold text-primary">Rp {{ number_format($sale->total_pembayaran ?? 0, 0, ',', '.') }}</td>
                             <td class="text-center">
                                 <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 uppercase">
                                     {{ $sale->metode_pembayaran }}
                                 </span>
                             </td>
                             <td class="text-center">
-                                @if(strtoupper($sale->status) == 'COMPLETED' || strtoupper($sale->status) == 'SELESAI')
+                                @if(strtoupper($sale->status ?? '') == 'COMPLETED' || strtoupper($sale->status ?? '') == 'SELESAI')
                                     <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Completed</span>
-                                @elseif(strtoupper($sale->status) == 'PENDING')
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">Pending</span>
+                                @elseif(strtoupper($sale->status ?? '') == 'PENDING' || strtoupper($sale->status ?? '') == 'OPEN')
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">{{ $sale->status }}</span>
                                 @else
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">{{ $sale->status }}</span>
                                 @endif
                             </td>
                             <td class="text-end">
                                 <div class="d-inline-flex gap-1">
-                                    <a href="#" class="btn btn-sm btn-info text-white" title="Detail">
+                                    <a href="{{ route('penjualan.show', $sale->id) }}" class="btn btn-sm btn-info text-white" title="Detail">
                                         Detail
                                     </a>
+                                    
                                     @can('view', $sale)
                                         <a href="{{ route('penjualan.edit', $sale) }}" class="btn btn-sm btn-warning text-white" title="Edit">
                                             Edit
                                         </a>
                                     @endcan
+
                                     @can('delete', $sale)
                                         <form action="{{ route('penjualan.destroy', $sale->id) }}" method="POST" class="d-inline">
                                             @csrf

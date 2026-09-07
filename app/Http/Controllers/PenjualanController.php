@@ -84,9 +84,13 @@ class PenjualanController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Penjualan $penjualan)
     {
-        //
+        // Mengubah parameter ke Penjualan $penjualan (Route Model Binding)
+        // Eager load relasi kasir (user) dan daftar barang beserta detail produknya
+        $penjualan->load(['user', 'itemPenjualan.produk']);
+
+        return view('penjualan.show', compact('penjualan'));
     }
 
     /**
@@ -151,7 +155,7 @@ class PenjualanController extends Controller
             return redirect()->route('penjualan.create')->with('errors', 'Transaksi sudah selesai tidak bisa dibatalkan');
         }
 
-        // ! Pastikan elisk user login (kasir)
+        // ! Pastikan milik user login (kasir)
         if ($penjualan->user_id !== Auth::id()) {
             return redirect()->route('penjualan.create');
         }
