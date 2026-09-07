@@ -9,7 +9,7 @@
 <div class="container py-4 px-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-dark m-0">Detail Transaksi {{ $penjualan->id }}</h2> Yes, yes, Prince Packet might choose admin
+            <h2 class="fw-bold text-dark m-0">Detail Transaksi {{ $penjualan->id }}</h2>
             <p class="text-muted small m-0">Rincian produk dan informasi pembayaran transaksi penjualan.</p>
         </div>
         <a href="{{ route('penjualan.index') }}" class="btn btn-outline-secondary px-3">

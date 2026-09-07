@@ -19,39 +19,44 @@
     </div>
 
     @can('viewAny', App\Models\User::class)
-    <!-- Section 1: Ringkasan Penjualan & Pembayaran (4 Stat Cards) -->
+    <!-- Sub-section 1: Today's Sales -->
+    <h5 class="fw-bold text-secondary text-center mb-3">Today's Sales</h5>
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
+        <div class="col-md-6">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
-                    <span class="text-muted text-uppercase fw-semibold style-caption">Total Penjualan</span>
+                    <span class="text-muted text-uppercase fw-semibold style-caption d-block">Total Penjualan</span>
                     <h4 class="fw-bold text-primary mt-2 mb-0">Rp {{ number_format($ringkasan['total_penjualan']) }}</h4>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3">
+        <div class="col-md-6">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
-                    <span class="text-muted text-uppercase fw-semibold style-caption">Jumlah Transaksi</span>
+                    <span class="text-muted text-uppercase fw-semibold style-caption d-block">Jumlah Transaksi</span>
                     <h4 class="fw-bold text-dark mt-2 mb-0">{{ $ringkasan['total_transaksi'] }} Transaksi</h4>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-3">
+    <!-- Sub-section 2: Cash & Payment Status -->
+    <h5 class="fw-bold text-secondary text-center mb-3">Cash & Payment Status</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
-                    <span class="text-muted text-uppercase fw-semibold style-caption">Pembayaran Tunai</span>
+                    <span class="text-success text-uppercase fw-semibold style-caption d-block">Pembayaran Tunai</span>
                     <h4 class="fw-bold text-success mt-2 mb-0">Rp {{ number_format($ringkasan['total_cash']) }}</h4>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-6">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
-                    <span class="text-muted text-uppercase fw-semibold style-caption">Pembayaran Non-Tunai</span>
+                    <span class="text-info text-uppercase fw-semibold style-caption d-block">Pembayaran Non-Tunai</span>
                     <h4 class="fw-bold text-info mt-2 mb-0">Rp {{ number_format($ringkasan['total_non_tunai']) }}</h4>
                 </div>
             </div>
@@ -60,6 +65,7 @@
     @endcan
 
     <!-- Section 2: Critical Inventory Status -->
+    <h5 class="fw-bold text-secondary text-center mb-3">Critical Inventory Status</h5>
     <div class="row g-4 mb-4">
         <!-- Stok Rendah -->
         <div class="col-md-6">

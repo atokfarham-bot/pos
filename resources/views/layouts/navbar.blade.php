@@ -9,7 +9,6 @@
       aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       
       {{-- PERUBAHAN: mx-auto agar rata tengah & fs-5 pada nav-link agar ukuran teks lebih besar --}}
