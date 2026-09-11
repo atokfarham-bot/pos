@@ -4,12 +4,19 @@
 
 @section('content')
 
-
 @include('layouts.navbar')
 
 @if(session('errors'))
-    <div class="alert alert-danger">
+    <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
         {{ session('errors') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
 
@@ -108,34 +115,64 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="text-center text-muted">
+                    <td colspan="5" class="text-center text-muted">
                         Keranjang kosong
                     </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
-            
+
         <div class="card-footer">
-            <strong>Rp {{ number_format($sale->total_pembayaran) }}</strong>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>Total Pembayaran:</span>
+                <strong class="fs-5 text-primary">Rp {{ number_format($sale->total_pembayaran) }}</strong>
+            </div>
 
-            <form method="POST"
-                    action="{{ route('penjualan.update', $sale->id) }}"
-                    onsubmit="return confirm('Yakin ingin checkout?')" class="mt-2">
-                @csrf
-                @method('PUT')
-                <select name="payment_method" class="form-select mb-2">
-                    <option value="">Pilih Pembayaran</option>
-                    <option value="CASH">Cash</option>
-                    <option value="QRIS">QRIS</option>
-                </select>
+            @if($sale->status === 'COMPLETED')
+                <div class="alert alert-success mt-2 mb-2">
+                    <div>Metode: <strong>{{ $sale->metode_pembayaran }}</strong></div>
+                    @if($sale->metode_pembayaran === 'CASH')
+                        <div>Uang Diterima: <strong>Rp {{ number_format($sale->uang_diterima) }}</strong></div>
+                        <div>Kembalian: <strong>Rp {{ number_format($sale->kembalian) }}</strong></div>
+                    @endif
+                </div>
+            @else
+                <form method="POST"
+                        action="{{ route('penjualan.update', $sale->id) }}"
+                        onsubmit="return validasiCheckout()" class="mt-2">
+                    @csrf
+                    @method('PUT')
 
-                <button class="btn btn-success w-100 {{ $sale->status === 'COMPLETED' ? 'disabled' : '' }}">
-                    Checkout
-                </button>
-            </form>
+                    <select name="metode_pembayaran" id="metode_pembayaran" class="form-select mb-2" onchange="togglePaymentFields()">
+                        <option value="">Pilih Pembayaran</option>
+                        <option value="CASH" {{ old('metode_pembayaran') === 'CASH' ? 'selected' : '' }}>Cash</option>
+                        <option value="QRIS" {{ old('metode_pembayaran') === 'QRIS' ? 'selected' : '' }}>QRIS</option>
+                    </select>
+
+                    {{-- Dynamic Cash Input Fields --}}
+                    <div id="cash-fields" style="display:none;">
+                        <input type="number"
+                               name="uang_diterima"
+                               id="uang_diterima"
+                               class="form-control mb-2"
+                               placeholder="Uang diterima"
+                               min="0"
+                               value="{{ old('uang_diterima') }}"
+                               oninput="hitungKembalian()">
+
+                        <div class="alert alert-info py-2 px-3 mb-2" id="kembalian-box">
+                            Kembalian: <strong id="kembalian-text">Rp 0</strong>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success w-100">
+                        Checkout
+                    </button>
+                </form>
+            @endif
+
             @can('delete', $sale)
-                
             <form action="{{ route('penjualan.destroy', $sale->id) }}"
                   method="POST"
                   onsubmit="return confirm('Yakin ingin membatalkan transaksi?')">
@@ -152,4 +189,68 @@
 </div>
 
 </div>
+
+<script>
+    const totalPembayaran = {{ $sale->total_pembayaran ?? 0 }};
+
+    function togglePaymentFields() {
+        const method = document.getElementById('metode_pembayaran').value;
+        const cashFields = document.getElementById('cash-fields');
+
+        if (method === 'CASH') {
+            cashFields.style.display = 'block';
+        } else {
+            cashFields.style.display = 'none';
+            document.getElementById('uang_diterima').value = '';
+            document.getElementById('kembalian-text').innerText = 'Rp 0';
+        }
+    }
+
+    function hitungKembalian() {
+        const uangDiterima = parseFloat(document.getElementById('uang_diterima').value) || 0;
+        const kembalian = uangDiterima - totalPembayaran;
+        const kembalianText = document.getElementById('kembalian-text');
+        const kembalianBox = document.getElementById('kembalian-box');
+
+        if (kembalian < 0) {
+            kembalianText.innerText = 'Kurang Rp ' + Math.abs(kembalian).toLocaleString('id-ID');
+            kembalianBox.classList.remove('alert-info', 'alert-success');
+            kembalianBox.classList.add('alert-danger');
+        } else {
+            kembalianText.innerText = 'Rp ' + kembalian.toLocaleString('id-ID');
+            kembalianBox.classList.remove('alert-info', 'alert-danger');
+            kembalianBox.classList.add('alert-success');
+        }
+    }
+
+    function validasiCheckout() {
+        // Cek apakah keranjang kosong
+        if (totalPembayaran <= 0) {
+            alert('Keranjang belanja masih kosong! Tambahkan produk terlebih dahulu.');
+            return false;
+        }
+
+        const method = document.getElementById('metode_pembayaran').value;
+
+        if (method === '') {
+            alert('Pilih metode pembayaran dulu!');
+            return false;
+        }
+
+        if (method === 'CASH') {
+            const uangDiterima = parseFloat(document.getElementById('uang_diterima').value) || 0;
+            if (uangDiterima < totalPembayaran) {
+                alert('Uang diterima kurang dari total pembayaran!');
+                return false;
+            }
+        }
+
+        return confirm('Yakin ingin checkout?');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        togglePaymentFields();
+        hitungKembalian();
+    });
+</script>
 @endsection

@@ -40,15 +40,15 @@ class ItemPenjualanController extends Controller
             $product->decrement('stok', $request->quantity);
 
             // + Update / insert item penjualan
-            $item = ItemPenjualan::where('penjualan_id', $sale->id)
+            $item_penjualan = ItemPenjualan::where('penjualan_id', $sale->id)
                 ->where('produk_id', $product->id)
                 ->lockForUpdate()
                 ->first();
 
-            if ($item) {
-                $item->kuantitas += $request->quantity;
+            if ($item_penjualan) {
+                $item_penjualan->kuantitas += $request->quantity;
             } else {
-                $item = new ItemPenjualan([
+                $item_penjualan = new ItemPenjualan([
                     'penjualan_id' => $sale->id,
                     'produk_id'    => $product->id,
                     'kuantitas'    => $request->quantity,
@@ -56,8 +56,8 @@ class ItemPenjualanController extends Controller
                 ]);
             }
 
-            $item->subtotal = $item->kuantitas * $item->harga_satuan;
-            $item->save();
+            $item_penjualan->subtotal = $item_penjualan->kuantitas * $item_penjualan->harga_satuan;
+            $item_penjualan->save();
 
             $sale->total_pembayaran = $sale->itemPenjualan()->sum('subtotal');
             $sale->save();
@@ -66,18 +66,18 @@ class ItemPenjualanController extends Controller
         return back();
     }
 
-    public function update(Request $request, ItemPenjualan $itempenjualan)
+    public function update(Request $request, ItemPenjualan $item_penjualan)
     {
         $request->validate([
             'quantity' => 'required|integer|min:1'
         ]);
 
-        DB::transaction(function () use ($request, $itempenjualan) {
+        DB::transaction(function () use ($request, $item_penjualan) {
 
             // ✅ Query langsung tanpa relasi
-            $produk = Produk::lockForUpdate()->findOrFail($itempenjualan->produk_id);
+            $produk = Produk::lockForUpdate()->findOrFail($item_penjualan->produk_id);
 
-            $selisih = $request->quantity - $itempenjualan->kuantitas;
+            $selisih = $request->quantity - $item_penjualan->kuantitas;
 
             // 🔴 Jika qty bertambah → kurangi stok
             if ($selisih > 0) {
@@ -93,13 +93,13 @@ class ItemPenjualanController extends Controller
             }
 
             // ✅ Update item
-            $itempenjualan->update([
+            $item_penjualan->update([
                 'kuantitas' => $request->quantity,
-                'subtotal'  => $request->quantity * $itempenjualan->harga_satuan
+                'subtotal'  => $request->quantity * $item_penjualan->harga_satuan
             ]);
 
             // ✅ Update total penjualan
-            $penjualan = Penjualan::findOrFail($itempenjualan->penjualan_id);
+            $penjualan = Penjualan::findOrFail($item_penjualan->penjualan_id);
             $penjualan->update([
                 'total_pembayaran' => $penjualan->itemPenjualan()->sum('subtotal')
             ]);
@@ -108,25 +108,29 @@ class ItemPenjualanController extends Controller
         return back();
     }
 
-    public function destroy(ItemPenjualan $itempenjualan)
+    public function destroy(ItemPenjualan $item_penjualan)
     {
-        $this->authorize('delete', $itempenjualan);
-        
-        DB::transaction(function () use ($itempenjualan) {
+        $this->authorize('delete', $item_penjualan);
 
-            $produk = $itempenjualan->produk;
-            $sale   = $itempenjualan->penjualan;
+        DB::transaction(function () use ($item_penjualan) {
 
-            // 🔵 Kembalikan stok
-            $produk->increment('stok', $itempenjualan->kuantitas);
+            $produk = $item_penjualan->produk;
+            $sale   = $item_penjualan->penjualan;
+
+            // 🔵 Kembalikan stok (dicek dulu biar tidak error kalau produk sudah terhapus)
+            if ($produk) {
+                $produk->increment('stok', $item_penjualan->kuantitas);
+            }
 
             // ❌ Hapus item
-            $itempenjualan->delete();
+            $item_penjualan->delete();
 
             // ✅ Update total penjualan
-            $sale->update([
-               'total_pembayaran' => $sale->itemPenjualan()->sum('subtotal')
-            ]);
+            if ($sale) {
+                $sale->update([
+                    'total_pembayaran' => $sale->itemPenjualan()->sum('subtotal')
+                ]);
+            }
         });
 
         return back();

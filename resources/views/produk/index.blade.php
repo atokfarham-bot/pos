@@ -98,7 +98,7 @@
                             </td>
 
                             <td class="text-secondary small">{{ $product->user?->name ?? '-' }}</td>
-                            <td class="text-muted">Rp {{ number_format($product->harga_beli, 0, ',', '.') }}</td>
+                            <td class="text-muted">Rp {{ number_format($product->harga_Beli, 0, ',', '.') }}</td>
                             <td class="fw-semibold text-success">Rp {{ number_format($product->harga_jual, 0, ',', '.') }}</td>
                             <td class="text-center">
                                 @if($product->stok <= 5)

@@ -1,114 +1,173 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Penjualan')
+@section('title', 'Struk Transaksi #' . sprintf('%06d', $sale->id ?? $penjualan->id))
 
 @section('content')
 
-@include('layouts.navbar')
+{{-- Navbar tidak ikut tercetak saat di-print --}}
+<div class="no-print">
+    @include('layouts.navbar')
+</div>
 
-<div class="container py-4 px-0">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+@php
+    $data = $sale ?? $penjualan;
+@endphp
+
+<div class="container my-4">
+    {{-- Header Tombol Aksi (Hanya Muncul di Layar Monitor) --}}
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
         <div>
-            <h2 class="fw-bold text-dark m-0">Detail Transaksi {{ $penjualan->id }}</h2>
-            <p class="text-muted small m-0">Rincian produk dan informasi pembayaran transaksi penjualan.</p>
+            <h4 class="fw-bold mb-1">Detail & Struk Penjualan</h4>
+            <p class="text-muted mb-0">Rincian transaksi dan cetak nota kasir</p>
         </div>
-        <a href="{{ route('penjualan.index') }}" class="btn btn-outline-secondary px-3">
-            &larr; Kembali
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('penjualan.index') }}" class="btn btn-outline-secondary">
+                 Kembali ke Riwayat
+            </a>
+            <button onclick="window.print()" class="btn btn-primary fw-bold px-4">
+                 Cetak Struk
+            </button>
+        </div>
     </div>
 
-    <div class="row g-4">
-        {{-- Ringkasan Informasi Transaksi --}}
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold text-dark mb-3">Informasi Transaksi</h5>
+    {{-- Layout Utama Struk --}}
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="receipt-card p-4 shadow-sm bg-white border mx-auto">
+                
+                {{-- Header Struk --}}
+                <div class="text-center mb-3">
+                    <h5 class="fw-bold mb-0 text-uppercase tracking-wider">TOKO FOOD</h5>
+                    <small class="text-muted d-block">Jl. Golempang. No. 15, Indonesia</small>
+                    <small class="text-muted d-block">Telp: 0858-6020-1095</small>
+                    <div class="receipt-divider mt-2">ATOK GANTENG</div>
+                </div>
+
+                {{-- Info Transaksi --}}
+                <div class="receipt-info small mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>No. Transaksi</span>
+                        <span class="fw-bold">#{{ sprintf('%06d', $data->id) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Tanggal</span>
+                        <span>{{ $data->created_at ? $data->created_at->format('d/m/Y H:i:s') : date('d/m/Y H:i:s') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Kasir</span>
+                        <span>{{ $data->user->name ?? 'Admin' }}</span>
+                    </div>
+                </div>
+
+                <div class="receipt-divider mb-2"></div>
+
+                {{-- Item Pembelian --}}
+                <div class="receipt-items small mb-2">
+                    @forelse($data->itemPenjualan as $item)
+                        <div class="item-row mb-1">
+                            <div class="fw-semibold">{{ $item->produk->nama }}</div>
+                            <div class="d-flex justify-content-between text-muted">
+                                <span>{{ $item->kuantitas }} x {{ number_format($item->produk->harga_jual, 0, ',', '.') }}</span>
+                                <span class="fw-bold text-dark">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center text-muted py-2">Tidak ada produk</div>
+                    @endforelse
+                </div>
+
+                <div class="receipt-divider mb-2"></div>
+
+                {{-- Total & Kembalian --}}
+                <div class="receipt-totals small mb-3">
+                    <div class="d-flex justify-content-between fw-bold fs-6 my-1">
+                        <span>TOTAL</span>
+                        <span>Rp {{ number_format($data->total_pembayaran, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Metode Bayar</span>
+                        <span class="fw-semibold">{{ strtoupper($data->metode_pembayaran ?? 'CASH') }}</span>
+                    </div>
                     
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Tanggal Transaksi</small>
-                        <span class="fw-semibold text-dark">{{ $penjualan->created_at ? $penjualan->created_at->translatedFormat('d-m-Y H:i:s') : '-' }}</span>
-                    </div>
-
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Kasir</small>
-                        <span class="fw-semibold text-dark">{{ $penjualan->user->name ?? 'Kasir Tidak Ditemukan' }}</span>
-                    </div>
-
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Metode Pembayaran</small>
-                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 text-uppercase">
-                            {{ $penjualan->metode_pembayaran }}
-                        </span>
-                    </div>
-
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Status</small>
-                        @if(strtoupper($penjualan->status ?? '') === 'COMPLETED' || strtoupper($penjualan->status ?? '') === 'SELESAI')
-                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Completed</span>
-                        @elseif(strtoupper($penjualan->status ?? '') === 'PENDING' || strtoupper($penjualan->status ?? '') === 'OPEN')
-                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">{{ $penjualan->status }}</span>
-                        @else
-                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">{{ $penjualan->status }}</span>
-                        @endif
-                    </div>
-
-                    <hr class="my-3">
-
-                    <div>
-                        <small class="text-muted d-block">Total Pembayaran</small>
-                        <h4 class="fw-bold text-primary m-0">
-                            Rp {{ number_format($penjualan->total_pembayaran ?? 0, 0, ',', '.') }}
-                        </h4>
-                    </div>
+                    @if(strtoupper($data->metode_pembayaran) === 'CASH')
+                        <div class="d-flex justify-content-between">
+                            <span>Uang Diterima</span>
+                            <span>Rp {{ number_format($data->uang_diterima ?? 0, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold text-success">
+                            <span>Kembali</span>
+                            <span>Rp {{ number_format($data->kembalian ?? 0, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
                 </div>
-            </div>
-        </div>
 
-        {{-- Tabel Daftar Item Produk --}}
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold text-dark mb-3">Daftar Produk</h5>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 50px;">#</th>
-                                    <th>Nama Produk</th>
-                                    <th class="text-center">Harga Satuan</th>
-                                    <th class="text-center">Jumlah</th>
-                                    <th class="text-end">Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($penjualan->itemPenjualan as $key => $item)
-                                    <tr>
-                                        <td>{{ $key + 1 }}</td>
-                                        <td class="fw-semibold text-dark">
-                                            {{ $item->produk->nama ?? 'Produk Dihapus' }}
-                                        </td>
-                                        <td class="text-center">
-                                            Rp {{ number_format($item->harga_satuan ?? 0, 0, ',', '.') }}
-                                        </td>
-                                        <td class="text-center">{{ $item->kuantitas ?? 0 }}</td>
-                                        <td class="text-end fw-bold text-primary">
-                                            Rp {{ number_format($item->subtotal ?? 0, 0, ',', '.') }}
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">
-                                            Tidak ada item produk dalam transaksi ini.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="receipt-divider mb-3"></div>
+
+                {{-- Footer Struk --}}
+                <div class="text-center small text-muted">
+                    <p class="mb-1 fw-semibold">*** TERIMA KASIH ***</p>
+                    <p class="mb-0">Barang yang sudah dibeli<br>tidak dapat ditukar/dikembalikan.</p>
                 </div>
+
             </div>
         </div>
     </div>
 </div>
+
+{{-- CSS Struk Thermal & Print --}}
+<style>
+    .receipt-card {
+        font-family: 'Courier New', Courier, monospace;
+        color: #111;
+        max-width: 350px;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+
+    .receipt-divider {
+        border-top: 1px dashed #666;
+    }
+
+    .tracking-wider {
+        letter-spacing: 1.5px;
+    }
+
+    @media print {
+        body {
+            background: #fff !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .container {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .row {
+            margin: 0 !important;
+        }
+
+        .col-md-5, .col-lg-4 {
+            width: 100% !important;
+            max-width: 80mm !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+        }
+
+        .receipt-card {
+            box-shadow: none !important;
+            border: none !important;
+            width: 100% !important;
+            padding: 5px !important;
+        }
+    }
+</style>
 
 @endsection

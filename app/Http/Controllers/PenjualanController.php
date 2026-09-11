@@ -3,52 +3,41 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SearchRequest;
-use App\Models\penjualan;
-use App\Models\produk;
+use App\Models\Penjualan;
+use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PenjualanController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(SearchRequest $request)
     {
         $user = Auth::user();
         $keyword = $request->input('search');
 
         $sales = Penjualan::query()
-
-        // 🔒 Filter berdasarkan role
-        ->when($user->role->name === 'kasir', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })
-
-        // 🔍 Search nama user
-        ->when($keyword, function ($query) use ($keyword) {
-            $query->whereHas('user', function ($q) use ($keyword) {
-                $q->where('name', 'like', '%' . $keyword . '%');
-            });
-        })
-
-        ->latest()
-        ->paginate(10)
-        ->withQueryString();
+            ->when($user->role && $user->role->name === 'kasir', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->when($keyword, function ($query) use ($keyword) {
+                $query->whereHas('user', function ($q) use ($keyword) {
+                    $q->where('name', 'like', '%' . $keyword . '%');
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return view('penjualan.index', compact('sales'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(SearchRequest $request)
     {
-        $sale = Penjualan::firstOrCreate(
+        $sale = Penjualan::with('itemPenjualan.produk')->firstOrCreate(
             [
                 'user_id' => Auth::id(),
-                'status' => 'OPEN'
+                'status'  => 'OPEN'
             ],
             [
                 'total_pembayaran' => 0,
@@ -58,27 +47,15 @@ class PenjualanController extends Controller
 
         $keyword = $request->input('search');
 
-        if($keyword) {
-            $products = Produk::when($keyword, function ($query) use ($keyword) {
-                $query->where('nama', 'like', '%' . $keyword . '%');
-            })
-            ->orderBy('nama')
-            ->get();
-        } else {
-            $products = Produk::orderBy('nama')->get();
-        }
-        
+        $products = Produk::when($keyword, function ($query) use ($keyword) {
+            $query->where('nama', 'like', '%' . $keyword . '%');
+        })
+        ->orderBy('nama')
+        ->get();
+
         $mode = 'create';
 
         return view('penjualan.pos', compact('sale', 'products', 'mode'));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
     }
 
     /**
@@ -86,97 +63,77 @@ class PenjualanController extends Controller
      */
     public function show(Penjualan $penjualan)
     {
-        // Mengubah parameter ke Penjualan $penjualan (Route Model Binding)
-        // Eager load relasi kasir (user) dan daftar barang beserta detail produknya
+        // Eager load relasi user dan itemPenjualan beserta produknya
         $penjualan->load(['user', 'itemPenjualan.produk']);
 
-        return view('penjualan.show', compact('penjualan'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Penjualan $penjualan)
-    {
+        // Alias agar aman dipanggil sebagai $sale di view
         $sale = $penjualan;
 
-        abort_if($sale->status === 'COMPLETED', 403);
-
-        $sale->load('itemPenjualan');
-        $products = Produk::orderBy('nama')->get();
-        $mode = 'edit';
-
-        return view('penjualan.pos', compact('sale', 'products', 'mode'));
+        return view('penjualan.show', compact('sale', 'penjualan'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update transaction / Checkout
      */
-    public function update(Request $request, Penjualan $penjualan)
+    public function update(Request $request, $id)
     {
-       $request->validate([
-            'payment_method' => 'required|in:CASH,QRIS'
+        $sale = Penjualan::with('itemPenjualan')->findOrFail($id);
+
+        if ($sale->itemPenjualan->count() === 0) {
+            return redirect()->back()->with('errors', 'Keranjang belanja masih kosong! Tambahkan produk terlebih dahulu.');
+        }
+
+        $request->validate([
+            'metode_pembayaran' => 'required|in:CASH,QRIS',
+            'uang_diterima'     => 'required_if:metode_pembayaran,CASH|nullable|numeric|min:' . $sale->total_pembayaran,
+        ], [
+            'metode_pembayaran.required' => 'Metode pembayaran wajib dipilih.',
+            'uang_diterima.required_if'  => 'Nominal uang diterima wajib diisi untuk pembayaran CASH.',
+            'uang_diterima.min'          => 'Uang yang diterima kurang dari total pembayaran.',
         ]);
 
-        if ($penjualan->status !== 'OPEN') {
-            return back()->with('errors', 'Transaksi sudah diproses');
+        $uangDiterima = null;
+        $kembalian    = null;
+
+        if ($request->metode_pembayaran === 'CASH') {
+            $uangDiterima = $request->uang_diterima;
+            $kembalian    = $uangDiterima - $sale->total_pembayaran;
         }
 
-        if ($penjualan->itemPenjualan()->count() === 0) {
-            return back()->with('errors', 'Keranjang masih kosong');
-        }
+        $sale->update([
+            'metode_pembayaran' => $request->metode_pembayaran,
+            'uang_diterima'     => $uangDiterima,
+            'kembalian'         => $kembalian,
+            'status'            => 'COMPLETED',
+        ]);
 
-        DB::transaction(function () use ($penjualan, $request) {
-
-            // ✅ Hitung ulang total (anti manipulasi)
-            $total = $penjualan->itemPenjualan()->sum('subtotal');
-
-            $penjualan->update([
-                'metode_pembayaran' => $request->payment_method,
-                'total_pembayaran'  => $total,
-                'status'            => 'COMPLETED'
-            ]);
-        });
-
-        return redirect()
-            ->route('penjualan.index')
-            ->with('success', 'Transaksi berhasil diselesaikan');
+        // Redirect ke Riwayat Penjualan setelah checkout
+        return redirect()->route('penjualan.index')->with('success', 'Transaksi berhasil diselesaikan.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Penjualan $penjualan)
     {
         $this->authorize('delete', $penjualan);
-        
-        // ! Pastikan harus transaksi OPEN
+
         if ($penjualan->status !== 'OPEN') {
-            return redirect()->route('penjualan.create')->with('errors', 'Transaksi sudah selesai tidak bisa dibatalkan');
+            return redirect()->route('penjualan.create')->with('errors', 'Transaksi sudah selesai tidak bisa dibatalkan.');
         }
 
-        // ! Pastikan milik user login (kasir)
         if ($penjualan->user_id !== Auth::id()) {
             return redirect()->route('penjualan.create');
         }
 
         DB::transaction(function () use ($penjualan) {
-
             foreach ($penjualan->itemPenjualan as $item) {
-                // 🔵 kembalikan stok
-                 $item->produk->increment('stok', $item->kuantitas);
+                $item->produk->increment('stok', $item->kuantitas);
             }
 
-            // ❌ hapus item
             $penjualan->itemPenjualan()->delete();
-
-            // ❌ hapus penjualan
             $penjualan->delete();
         });
 
         return redirect()
             ->route('penjualan.index')
-            ->with('success', 'Transaksi berhasil dibatalkan');
-    
+            ->with('success', 'Transaksi berhasil dibatalkan.');
     }
 }

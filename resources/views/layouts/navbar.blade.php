@@ -21,9 +21,11 @@
           <a class="nav-link px-3 fs-5 {{ Request::is('admin/users*') ? 'active text-primary fw-bold' : 'text-dark fw-semibold' }}" href="{{ route('admin.users') }}">Users</a>
         </li>
         @endif
+        @if (Auth::user()->role->name === 'admin')
         <li class="nav-item">
           <a class="nav-link px-3 fs-5 {{ Request::is('jenis*') ? 'active text-primary fw-bold' : 'text-dark fw-semibold' }}" href="{{ route('jenis.index') }}">Jenis</a>
         </li>
+         @endif
         <li class="nav-item">
           <a class="nav-link px-3 fs-5 {{ Request::is('produk*') ? 'active text-primary fw-bold' : 'text-dark fw-semibold' }}" href="{{ route('produk.index') }}">Produk</a>
         </li>
