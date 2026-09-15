@@ -7,7 +7,7 @@
 
 @include('layouts.navbar')
 
-<h4>Tambah User</h4>
+<h4>Tambah Pengguna</h4>
 
 <form action="{{ route('admin.users.store') }}" method="POST">
     @csrf

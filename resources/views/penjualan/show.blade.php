@@ -40,7 +40,7 @@
                     <h5 class="fw-bold mb-0 text-uppercase tracking-wider">TOKO FOOD</h5>
                     <small class="text-muted d-block">Jl. Golempang. No. 15, Indonesia</small>
                     <small class="text-muted d-block">Telp: 0858-6020-1095</small>
-                    <div class="receipt-divider mt-2">ATOK GANTENG</div>
+                    <div class="receipt-divider mt-2">ATOK</div>
                 </div>
 
                 {{-- Info Transaksi --}}

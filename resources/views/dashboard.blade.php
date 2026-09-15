@@ -151,7 +151,7 @@
             </div>
         </div>
     </div> 
-
+    
     <!-- Section 3: Best Seller Products -->
     <div class="row">
         <div class="col-md-12">

@@ -8,6 +8,7 @@ use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\JenisController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AboutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +25,7 @@ Route::middleware('guest')->group(function () {
 // Route yang bisa diakses ketika user sudah login (Authenticated)
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/about', [AboutController::class, 'index'])->name('about');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Route khusus Admin

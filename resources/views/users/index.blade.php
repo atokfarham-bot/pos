@@ -19,11 +19,11 @@
     {{-- Header Page --}}
     <div class="d-flex justify-content-between items-center align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-dark m-0">Daftar Users</h2>
+            <h2 class="fw-bold text-dark m-0">Daftar Pengguna</h2>
             <p class="text-muted small m-0">Kelola data pengguna sistem POS Anda di sini.</p>
         </div>
         <a href="{{ route('admin.users.create') }}" class="btn btn-primary px-3 font-medium">
-            + Tambah User
+            + Tambah Pengguna
         </a>
     </div>
 
@@ -59,7 +59,7 @@
                             <th scope="col" class="py-3" style="width: 50px;">#</th>
                             <th scope="col" class="py-3">Nama</th>
                             <th scope="col" class="py-3">Email</th>
-                            <th scope="col" class="py-3">Role</th>
+                            <th scope="col" class="py-3">Pengguna</th>
                             <th scope="col" class="py-3 text-end" style="width: 150px;">Aksi</th>
                         </tr>
                     </thead>
@@ -84,7 +84,7 @@
                                     <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus user ini?')" title="Hapus">
+                                        <button class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus Pengguna ini?')" title="Hapus">
                                             Hapus
                                         </button>
                                     </form>
@@ -94,7 +94,7 @@
                         @empty
                         <tr>
                             <td colspan="5" class="text-center py-4 text-muted">
-                                Tidak ada data user ditemukan.
+                                Tidak ada data Pengguna ditemukan.
                             </td>
                         </tr>
                         @endforelse

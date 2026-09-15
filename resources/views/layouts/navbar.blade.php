@@ -2,7 +2,7 @@
   <!-- Container px-0 agar sejajar presisi -->
   <div class="container px-0">
 
-    <a class="navbar-brand fw-bold text-primary fs-4 ps-0" href="#">POS</a>
+    <a class="navbar-brand fw-bold text-primary fs-4 ps-0" href="#">TOKO FOOD</a>
 
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
       data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" 
@@ -18,7 +18,7 @@
         </li>
         @if (Auth::user()->role->name === 'admin')
         <li class="nav-item">
-          <a class="nav-link px-3 fs-5 {{ Request::is('admin/users*') ? 'active text-primary fw-bold' : 'text-dark fw-semibold' }}" href="{{ route('admin.users') }}">Users</a>
+          <a class="nav-link px-3 fs-5 {{ Request::is('admin/users*') ? 'active text-primary fw-bold' : 'text-dark fw-semibold' }}" href="{{ route('admin.users') }}">Pengguna</a>
         </li>
         @endif
         @if (Auth::user()->role->name === 'admin')
@@ -31,6 +31,9 @@
         </li>
         <li class="nav-item">
           <a class="nav-link px-3 fs-5 {{ Request::is('penjualan*') ? 'active text-primary fw-bold' : 'text-dark fw-semibold' }}" href="{{ route('penjualan.index') }}">Penjualan</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-3 fs-5 {{ Request::is('about') ? 'active text-primary fw-bold' : 'text-dark fw-semibold' }}" href="{{ route('about') }}">Tentang</a>
         </li>
       </ul>
 

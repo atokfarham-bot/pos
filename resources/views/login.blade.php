@@ -2,7 +2,7 @@
 @extends('layouts.app')
 
 <!-- mengirimkan nilai ke title untuk ditampilkan -->
-@section('title', 'Login - POS System')
+@section('title', 'Login - POS Syste')
 
 <!-- batas awal isi konten -->
 @section('content')
