@@ -50,10 +50,36 @@ class PenjualanController extends Controller
         $products = Produk::when($keyword, function ($query) use ($keyword) {
             $query->where('nama', 'like', '%' . $keyword . '%');
         })
-        ->orderBy('nama')
-        ->get();
+            ->orderBy('nama')
+            ->get();
 
         $mode = 'create';
+
+        return view('penjualan.pos', compact('sale', 'products', 'mode'));
+    }
+
+    /**
+     * Menampilkan halaman edit transaksi / POS
+     */
+    public function edit(SearchRequest $request, $id)
+    {
+        // Cari transaksi berdasarkan ID
+        $sale = Penjualan::with('itemPenjualan.produk')->findOrFail($id);
+
+        // Opsional: Batasi edit jika transaksi sudah COMPLETED/Selesai
+        if ($sale->status === 'COMPLETED') {
+            return redirect()->route('penjualan.index')->with('errors', 'Transaksi yang sudah selesai tidak dapat diubah.');
+        }
+
+        $keyword = $request->input('search');
+
+        $products = Produk::when($keyword, function ($query) use ($keyword) {
+            $query->where('nama', 'like', '%' . $keyword . '%');
+        })
+            ->orderBy('nama')
+            ->get();
+
+        $mode = 'edit';
 
         return view('penjualan.pos', compact('sale', 'products', 'mode'));
     }

@@ -2,7 +2,7 @@
   <!-- Container px-0 agar sejajar presisi -->
   <div class="container px-0">
 
-    <a class="navbar-brand fw-bold text-primary fs-4 ps-0" href="#">TOKO FOOD</a>
+    <a class="navbar-brand fw-bold text-primary fs-4 ps-0" href="#">Nyam-Chicken Series</a>
 
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
       data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" 

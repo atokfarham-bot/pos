@@ -37,7 +37,7 @@
                 
                 {{-- Header Struk --}}
                 <div class="text-center mb-3">
-                    <h5 class="fw-bold mb-0 text-uppercase tracking-wider">TOKO FOOD</h5>
+                    <h5 class="fw-bold mb-0 text-uppercase tracking-wider">Nyam-Chicken Series</h5>
                     <small class="text-muted d-block">Jl. Golempang. No. 15, Indonesia</small>
                     <small class="text-muted d-block">Telp: 0858-6020-1095</small>
                     <div class="receipt-divider mt-2">ATOK</div>
