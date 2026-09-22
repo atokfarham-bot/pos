@@ -2,7 +2,7 @@
   <!-- Container px-0 agar sejajar presisi -->
   <div class="container px-0">
 
-    <a class="navbar-brand fw-bold text-primary fs-4 ps-0" href="#">Nyam-Chicken Series</a>
+    <a class="navbar-brand fw-bold text-primary fs-4 ps-0" href="{{ route('dashboard') }}">Nyam-Chicken Series</a>
 
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
       data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" 
@@ -25,7 +25,7 @@
         <li class="nav-item">
           <a class="nav-link px-3 fs-5 {{ Request::is('jenis*') ? 'active text-primary fw-bold' : 'text-dark fw-semibold' }}" href="{{ route('jenis.index') }}">Jenis</a>
         </li>
-         @endif
+        @endif
         <li class="nav-item">
           <a class="nav-link px-3 fs-5 {{ Request::is('produk*') ? 'active text-primary fw-bold' : 'text-dark fw-semibold' }}" href="{{ route('produk.index') }}">Produk</a>
         </li>

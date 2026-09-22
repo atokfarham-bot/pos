@@ -164,7 +164,8 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="ps-3">Nama Produk</th>
+                                    <th width="10%" class="ps-3">#</th>
+                                    <th>Nama Produk</th>
                                     <th width="20%">Stok Sisa</th>
                                     <th width="20%" class="text-end pe-3">Unit Terjual</th>
                                 </tr>
@@ -172,13 +173,14 @@
                             <tbody>
                                 @forelse ($produkTerlaris as $produk)
                                     <tr>
-                                        <td class="ps-3 fw-medium">{{ $produk->nama }}</td>
-                                        <td><span class="badge bg-secondary">{{ $produk->stok }}</span></td>
+                                        <td class="ps-3">{{ $loop->iteration }}</td>
+                                        <td class="fw-medium">{{ $produk->nama }}</td>
+                                        <td><span class="badge bg-danger">{{ $produk->stok }}</span></td>
                                         <td class="text-end pe-3 fw-bold text-success">{{ $produk->total_terjual }} unit</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center text-muted py-4">Seluruh produk berada dalam kondisi stok aman.</td>
+                                        <td colspan="4" class="text-center text-muted py-4">Belum ada data penjualan produk.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

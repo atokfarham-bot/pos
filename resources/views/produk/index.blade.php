@@ -66,7 +66,7 @@
                             <th scope="col" class="py-3">Harga Beli</th>
                             <th scope="col" class="py-3">Harga Jual</th>
                             <th scope="col" class="py-3 text-center">Stok</th>
-                            <th scope="col" class="py-3 text-end" style="width: 140px;">Aksi</th>
+                 
                         </tr>
                     </thead>
                     <tbody>

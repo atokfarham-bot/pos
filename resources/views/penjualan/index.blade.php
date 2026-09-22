@@ -58,6 +58,7 @@
                             <th scope="col" class="py-3" style="width: 50px;">#</th>
                             <th scope="col" class="py-3">Tanggal Transaksi</th>
                             <th scope="col" class="py-3">Kasir</th>
+                            <th scope="col" class="py-3">Nama Produk</th>
                             <th scope="col" class="py-3">Total Pembayaran</th>
                             <th scope="col" class="py-3 text-center">Metode</th>
                             <th scope="col" class="py-3 text-center">Status</th>
@@ -70,7 +71,19 @@
                             <td>{{ $sales->firstItem() + $loop->index }}</td>
                             <td class="text-secondary small">{{ $sale->created_at ? $sale->created_at->translatedFormat('d-m-Y H:i:s') : '-' }}</td>
                             <td class="fw-semibold text-dark">{{ $sale->user->name ?? 'Kasir Tidak Ada' }}</td>
+                            
+                            {{-- Kolom Nama Produk (Mengambil dari itemPenjualan -> produk -> nama) --}}
+                            <td>
+                                @if($sale->itemPenjualan && $sale->itemPenjualan->count() > 0)
+                                    {{ $sale->itemPenjualan->map(fn($item) => $item->produk->nama ?? null)->filter()->implode(', ') }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+
+                            {{-- Kolom Total Pembayaran --}}
                             <td class="fw-bold text-primary">Rp {{ number_format($sale->total_pembayaran ?? 0, 0, ',', '.') }}</td>
+                            
                             <td class="text-center">
                                 <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 uppercase">
                                     {{ $sale->metode_pembayaran }}
@@ -111,7 +124,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
+                            <td colspan="8" class="text-center py-5 text-muted">
                                 Data transaksi tidak ditemukan.
                             </td>
                         </tr>

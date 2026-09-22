@@ -16,7 +16,7 @@ class PenjualanController extends Controller
         $user = Auth::user();
         $keyword = $request->input('search');
 
-        $sales = Penjualan::query()
+        $sales = Penjualan::with(['user', 'itemPenjualan.produk']) // Eager loading relasi produk
             ->when($user->role && $user->role->name === 'kasir', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
@@ -58,15 +58,10 @@ class PenjualanController extends Controller
         return view('penjualan.pos', compact('sale', 'products', 'mode'));
     }
 
-    /**
-     * Menampilkan halaman edit transaksi / POS
-     */
     public function edit(SearchRequest $request, $id)
     {
-        // Cari transaksi berdasarkan ID
         $sale = Penjualan::with('itemPenjualan.produk')->findOrFail($id);
 
-        // Opsional: Batasi edit jika transaksi sudah COMPLETED/Selesai
         if ($sale->status === 'COMPLETED') {
             return redirect()->route('penjualan.index')->with('errors', 'Transaksi yang sudah selesai tidak dapat diubah.');
         }
@@ -84,23 +79,15 @@ class PenjualanController extends Controller
         return view('penjualan.pos', compact('sale', 'products', 'mode'));
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Penjualan $penjualan)
     {
-        // Eager load relasi user dan itemPenjualan beserta produknya
         $penjualan->load(['user', 'itemPenjualan.produk']);
 
-        // Alias agar aman dipanggil sebagai $sale di view
         $sale = $penjualan;
 
         return view('penjualan.show', compact('sale', 'penjualan'));
     }
 
-    /**
-     * Update transaction / Checkout
-     */
     public function update(Request $request, $id)
     {
         $sale = Penjualan::with('itemPenjualan')->findOrFail($id);
@@ -133,7 +120,6 @@ class PenjualanController extends Controller
             'status'            => 'COMPLETED',
         ]);
 
-        // Redirect ke Riwayat Penjualan setelah checkout
         return redirect()->route('penjualan.index')->with('success', 'Transaksi berhasil diselesaikan.');
     }
 
